@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+      integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
+      crossorigin="anonymous"
+    />
+    <style>
+      .center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #myProgress {
+        width: 100%;
+        background-color: #ddd;
+      }
+
+      #myBar {
+        width: 10%;
+        height: 30px;
+        background-color: #04aa6d;
+        text-align: center;
+        line-height: 30px;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body style="background: transparent">
+    <div class="container" style="font-size: small">
+      <div class="row">
+        <div class="text-center">
+          <span class="msg"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="text-center">
+          <span id="koneksi"></span>
+          <span>|</span>
+          <span id="speed">
+            <!--<span id="speed" onload="move()">-->
+            <!--<div id="myProgress">-->
+            <!--  <div id="myBar"></div>-->
+            <!--</div>-->
+          </span>
+          <span id="isp"></span>
+          <span id="kodeNegara"></span>
+          <span id="bendera"></span>
+          <!-- <div id="referrer"></div> -->
+          <br />
+          &LeftTeeArrow;
+          <a class="text-decoration-none" href="mailto:info@9hs.my.id"
+            >Hubungi</a
+          >
+          Kami &RightTeeArrow;
+        </div>
+      </div>
+    </div>
+
+    <script src="scripts/ips.js"></script>
+    <script src="scripts/speedtest.js"></script>
+  </body>
+</html>
