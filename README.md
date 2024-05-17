@@ -23,7 +23,5 @@
 
 #
 
-[Contact](#contact-me)
-
 #### Contact Me
 You can contact me if you have any problems, I have included the link regarding my contact above. Thank You
