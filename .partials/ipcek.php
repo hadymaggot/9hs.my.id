@@ -31,42 +31,67 @@ function getUserIP() {
     return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : 'unknown';
 }
 
-function curl_get_contents($u) {
-    // Validate the URL to avoid security risks (ensure it's a valid HTTP/HTTPS URL)
-    if (!filter_var($u, FILTER_VALIDATE_URL)) {
+function isValidUrl($url) {
+    // Check if the URL is valid and does not point to an internal IP or localhost
+    if (!filter_var($url, FILTER_VALIDATE_URL)) {
         return false;
     }
 
-    // Check if the URL is within an allowed domain (to avoid SSRF)
-    $parsed_url = parse_url($u);
-    $allowed_domains = ['api.ipdata.co', 'api.ipify.org', 'vpnapi.io'];  // List of allowed domains
-    
-    if (!in_array($parsed_url['host'], $allowed_domains)) {
-        return false; // Reject requests to disallowed domains
+    // Parse the URL to extract the host
+    $parsedUrl = parse_url($url);
+    $host = $parsedUrl['host'];
+
+    // Check for local IPs or localhost
+    $blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
+    if (in_array($host, $blockedHosts)) {
+        return false;
     }
 
-    // Initialize cURL session
+    // block private IP ranges:
+    $blockedIps = [
+        '192.168.', // Class C private IP range
+        '10.',      // Class A private IP range
+        '172.16.',  // Class B private IP range
+        '169.254.'  // Link-local addresses
+    ];
+    
+    foreach ($blockedIps as $blockedIp) {
+        if (strpos($host, $blockedIp) === 0) {
+            return false;
+        }
+    }
+
+    // Ensure that only HTTP/HTTPS protocols are used
+    if (!in_array($parsedUrl['scheme'], ['http', 'https'])) {
+        return false;
+    }
+
+    return true;
+}
+
+function curl_get_contents($u) {
+    // Validate the URL to prevent SSRF
+    if (!isValidUrl($u)) {
+        return false;  // Return false if the URL is not valid
+    }
+
     $cget = curl_init($u);
     curl_setopt($cget, CURLOPT_URL, $u);
     curl_setopt($cget, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($cget, CURLOPT_ENCODING, '');
     curl_setopt($cget, CURLOPT_MAXREDIRS, 10);
-    curl_setopt($cget, CURLOPT_TIMEOUT, 10);  // Timeout to avoid hanging requests
+    curl_setopt($cget, CURLOPT_TIMEOUT, 0);
     curl_setopt($cget, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($cget, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     curl_setopt($cget, CURLOPT_CUSTOMREQUEST, 'GET');
-    
-    // Execute cURL request
     $response = curl_exec($cget);
-    
+
     // Handle cURL errors
     if (curl_errno($cget)) {
-        // Escape the cURL error message to avoid XSS
         echo 'Curl error: ' . htmlspecialchars(curl_error($cget), ENT_QUOTES, 'UTF-8');
     }
-    
-    curl_close($cget);
 
+    curl_close($cget);
     return $response;
 }
 
