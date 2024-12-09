@@ -1,7 +1,19 @@
-const searchInput = document.getElementById('ahz-duckgo');
-const searchResults = document.getElementById('searchResults');
+// Utility function to sanitize URL
+function sanitizeURL(url) {
+    // Check if the URL is valid
+    const urlPattern = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/i;
+    return urlPattern.test(url) ? encodeURI(url) : '#';  // Return a fallback if invalid
+}
 
-searchInput.addEventListener('input', debounce(searchDuckDuckGo, 500));
+// Function to escape potentially dangerous HTML characters
+function escapeHTML(str) {
+    const element = document.createElement('div');
+    if (str) {
+        element.innerText = str;
+        element.textContent = str;
+    }
+    return element.innerHTML;
+}
 
 async function searchDuckDuckGo() {
     const query = searchInput.value;
@@ -17,8 +29,9 @@ async function searchDuckDuckGo() {
 
         if (data.Results && data.Results.length > 0) {
             const resultsHTML = data.Results.map(result => {
-                const sanitizedURL = sanitizeHTML(result.FirstURL);
-                return `<li><a href="${sanitizedURL}" target="_blank">${sanitizedURL}</a></li>`;
+                const sanitizedURL = sanitizeURL(result.FirstURL);
+                const sanitizedTitle = escapeHTML(result.Text);  // Escape title to avoid XSS
+                return `<li><a href="${sanitizedURL}" target="_blank">${sanitizedTitle}</a></li>`;
             }).join('');
             searchResults.innerHTML = resultsHTML;
         } else {
@@ -27,21 +40,6 @@ async function searchDuckDuckGo() {
     } catch (error) {
         console.error('Error:', error);
     }
-}
-
-// Debounce function to delay search while typing
-function debounce(func, delay) {
-    let timer;
-    return function () {
-        clearTimeout(timer);
-        timer = setTimeout(func, delay);
-    };
-}
-
-// Utility function to sanitize strings to prevent XSS
-function sanitizeHTML(str) {
-    const doc = new DOMParser().parseFromString(str, 'text/html');
-    return doc.body.textContent || "";
 }
 
 
