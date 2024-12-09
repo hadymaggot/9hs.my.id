@@ -32,37 +32,64 @@ function getUserIP() {
 }
 
 function curl_get_contents($u) {
-    // Validate the URL to avoid security risks
+    // Validate the URL to avoid security risks (ensure it's a valid HTTP/HTTPS URL)
     if (!filter_var($u, FILTER_VALIDATE_URL)) {
         return false;
     }
 
+    // Check if the URL is within an allowed domain (to avoid SSRF)
+    $parsed_url = parse_url($u);
+    $allowed_domains = ['api.ipdata.co', 'api.ipify.org', 'vpnapi.io'];  // List of allowed domains
+    
+    if (!in_array($parsed_url['host'], $allowed_domains)) {
+        return false; // Reject requests to disallowed domains
+    }
+
+    // Initialize cURL session
     $cget = curl_init($u);
     curl_setopt($cget, CURLOPT_URL, $u);
     curl_setopt($cget, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($cget, CURLOPT_ENCODING, '');
     curl_setopt($cget, CURLOPT_MAXREDIRS, 10);
-    curl_setopt($cget, CURLOPT_TIMEOUT, 0);
+    curl_setopt($cget, CURLOPT_TIMEOUT, 10);  // Timeout to avoid hanging requests
     curl_setopt($cget, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($cget, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     curl_setopt($cget, CURLOPT_CUSTOMREQUEST, 'GET');
+    
+    // Execute cURL request
     $response = curl_exec($cget);
+
+    // Handle cURL errors
+    if(curl_errno($cget)) {
+        echo 'Curl error: ' . curl_error($cget);
+        curl_close($cget);
+        return false;
+    }
+
     curl_close($cget);
+
     return $response;
 }
 
 $t = time();
 
+// Get the user's IP
 $ip2 = getUserIP();
+
+// Fetch public IP using ipify
 $ip3 = @file_get_contents("https://api.ipify.org/");
 
+// Fetch additional data about the IP using IPData API
 $url3 = "https://api.ipdata.co/" . urlencode($ip3) . "/carrier?api-key=5778f15bce9a28eaadb01e71577ad926737ba460f2f028e4d3e2e01f";
 $url4 = "https://vpnapi.io/api/".$ip2."?key=d068d1dc6e4245d788280fc3a04ce801";
 $url5 = "https://api.ipdata.co/?api-key=5778f15bce9a28eaadb01e71577ad926737ba460f2f028e4d3e2e01f";
 $url6 = "https://api64.ipify.org";
 
+// File paths for storing visitor data
 $visitorbulklist = "visitorbulklist/" . date("Y-m-d");
 file_put_contents($visitorbulklist, PHP_EOL . htmlspecialchars($ip2), FILE_APPEND);
+
+// Add timestamp to the file for tracking
 $visitorbulklist = "visitorbulklist/" . date("Y-m-d") . "-t";
 file_put_contents($visitorbulklist, PHP_EOL . htmlspecialchars($ip2) . " - " . date(DATE_RFC822) . " [" . $t . "]", FILE_APPEND);
 
@@ -77,15 +104,19 @@ $uniques = array_unique($v);
 $visitorbulklist_u = "visitorbulklist/" . basename(date("Y-m-d")) . "-u";
 file_put_contents($visitorbulklist_u, implode($uniques));
 
+// Get list of unique visitors
 $visitor = @file_get_contents($visitorbulklist_u, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 $visitors = substr_count($visitor, "\n");
 
+// Fetch additional data about the IP using the IPData API
 $mobile = @file_get_contents($url3);
 
+// Fetch and update Tor exit list
 $filetorbulkexitlist = "torbulkexitlist/" . date("Y-m");
-$filetorbulkexitlistupdate = @file_get_contents($url);
+$filetorbulkexitlistupdate = @file_get_contents("https://check.torproject.org/torbulkexitlist");
 file_put_contents($filetorbulkexitlist, $filetorbulkexitlistupdate);
 
+// Fetch VPN data using the VPN API
 $cek = json_decode(curl_get_contents($url4));
 $cek2 = json_decode(curl_get_contents($url5));
 
