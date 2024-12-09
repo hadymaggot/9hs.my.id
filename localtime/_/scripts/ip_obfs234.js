@@ -28,8 +28,16 @@
   xhttp3.send();
 
   if (document.referrer && document.referrer !== "") {
+    const decodedReferrer = decodeURIComponent(document.referrer);
+    const safeReferrer = decodedReferrer
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
     document.getElementById("referrer").innerHTML =
-      "<strong>Halaman Sebelumnya:</strong>  " + document.referrer;
+        "<strong>Halaman Sebelumnya:</strong> " + safeReferrer;
   }
 
   //get the IP addresses associated with an account
