@@ -1,8 +1,7 @@
 // Utility function to sanitize URL
 function sanitizeURL(url) {
-    // Check if the URL is valid
     const urlPattern = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/i;
-    return urlPattern.test(url) ? encodeURI(url) : '#';  // Return a fallback if invalid
+    return urlPattern.test(url) ? encodeURI(url) : '#';  // Fallback to '#' if invalid
 }
 
 // Function to escape potentially dangerous HTML characters
@@ -19,7 +18,7 @@ async function searchDuckDuckGo() {
     const query = searchInput.value;
 
     if (query.length === 0) {
-        searchResults.innerHTML = '';
+        searchResults.innerHTML = ''; // Clear results if no query
         return;
     }
 
@@ -28,11 +27,14 @@ async function searchDuckDuckGo() {
         const data = await response.json();
 
         if (data.Results && data.Results.length > 0) {
+            // Using a safer method to generate HTML
             const resultsHTML = data.Results.map(result => {
                 const sanitizedURL = sanitizeURL(result.FirstURL);
-                const sanitizedTitle = escapeHTML(result.Text);  // Escape title to avoid XSS
+                const sanitizedTitle = escapeHTML(result.Text);  // Escape any HTML tags in title
                 return `<li><a href="${sanitizedURL}" target="_blank">${sanitizedTitle}</a></li>`;
             }).join('');
+
+            // Set the results with sanitized HTML
             searchResults.innerHTML = resultsHTML;
         } else {
             searchResults.innerHTML = '<li>No results found.</li>';
@@ -41,7 +43,6 @@ async function searchDuckDuckGo() {
         console.error('Error:', error);
     }
 }
-
 
 // const searchInput = document.getElementById('ahz-duckgo');
 // const searchResults = document.getElementById('searchResults');
