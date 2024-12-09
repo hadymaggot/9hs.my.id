@@ -1,11 +1,23 @@
 (function () {
+  // Utility Function for Escaping Input
+  function sanitizeHTML(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   // Fetch Public IP Address
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function () {
     if (xhttp.readyState === 4 && xhttp.status === 200) {
       var response = JSON.parse(xhttp.responseText);
       document.getElementById("connection").innerHTML +=
-        "<b>IP Publik Anda</b>&RightArrow;<i>" + response.ip + "</i> ";
+        "<b>IP Publik Anda</b>&RightArrow;<i>" +
+        sanitizeHTML(response.ip) +
+        "</i> ";
     }
   };
   xhttp.open("GET", "https://api.ipify.org?format=json", true);
@@ -18,11 +30,11 @@
       var response = JSON.parse(xhttp3.responseText);
       document.getElementById("isp").innerHTML +=
         "<i>" +
-        response.isp +
+        sanitizeHTML(response.isp) +
         "</i> | " +
-        response.regionName +
+        sanitizeHTML(response.regionName) +
         ", " +
-        response.countryCode;
+        sanitizeHTML(response.countryCode);
     }
   };
   xhttp3.open("GET", "http://ip-api.com/json", true);
@@ -30,14 +42,9 @@
 
   // Display Referrer Information
   if (document.referrer && document.referrer !== "") {
-    const decodedReferrer = decodeURIComponent(document.referrer)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    const safeReferrer = sanitizeHTML(document.referrer);
     document.getElementById("referrer").innerHTML =
-      "<strong>Halaman Sebelumnya:</strong> " + decodedReferrer;
+      "<strong>Halaman Sebelumnya:</strong> " + safeReferrer;
   }
 
   // Get Local IP Addresses
@@ -75,10 +82,9 @@
 
   getIPs(function (ip) {
     document.getElementById("connection").innerHTML +=
-      "<b>Local IP →</b> " + ip + "<br>";
+      "<b>Local IP →</b> " + sanitizeHTML(ip) + "<br>";
   });
 })();
-
 
 // (function () {
 //   var xhttp = new XMLHttpRequest();
