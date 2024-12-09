@@ -58,14 +58,13 @@ function curl_get_contents($u) {
     
     // Execute cURL request
     $response = curl_exec($cget);
-
+    
     // Handle cURL errors
-    if(curl_errno($cget)) {
-        echo 'Curl error: ' . curl_error($cget);
-        curl_close($cget);
-        return false;
+    if (curl_errno($cget)) {
+        // Escape the cURL error message to avoid XSS
+        echo 'Curl error: ' . htmlspecialchars(curl_error($cget), ENT_QUOTES, 'UTF-8');
     }
-
+    
     curl_close($cget);
 
     return $response;
